@@ -65,7 +65,7 @@
 				var active = tab.getAttribute( 'data-fssb-tab' ) === id;
 
 				found = found || active;
-				tab.classList.toggle( 'nav-tab-active', active );
+				tab.classList.toggle( 'is-active', active );
 				tab.setAttribute( 'aria-selected', active ? 'true' : 'false' );
 			} );
 
@@ -92,6 +92,11 @@
 				show( id );
 				history.replaceState( null, '', '#' + id );
 			} );
+		} );
+
+		// Back/forward and links to #style etc.
+		window.addEventListener( 'hashchange', function () {
+			show( window.location.hash.replace( '#', '' ) );
 		} );
 
 		show( window.location.hash.replace( '#', '' ) );
@@ -241,6 +246,11 @@
 			}
 		} );
 
+		var counter = document.querySelector( '[data-fssb-count]' );
+		if ( counter ) {
+			counter.textContent = data.count.replace( '%1$s', count ).replace( '%2$s', list.children.length );
+		}
+
 		// Same sizing inputs as Fast_Social_Share_Buttons_Renderer::render().
 		preview.style.setProperty( '--fssb-n', Math.max( 1, count ) );
 		preview.style.setProperty( '--fssb-lw', Math.max( 6, 2.9 + 0.6 * longest ).toFixed( 1 ) + 'em' );
@@ -257,9 +267,13 @@
 		}
 
 		var labels = group.querySelectorAll( '.fssb-b:not([hidden]) .fssb-l' );
+		var range = document.createRange();
 
 		for ( var i = 0; i < labels.length; i++ ) {
-			if ( labels[ i ].scrollWidth > labels[ i ].clientWidth + 1 ) {
+			range.selectNodeContents( labels[ i ] );
+
+			// Sub-pixel comparison, as on the front end.
+			if ( range.getBoundingClientRect().width > labels[ i ].getBoundingClientRect().width + 0.05 ) {
 				group.classList.add( 'fssb-fit' );
 				return;
 			}

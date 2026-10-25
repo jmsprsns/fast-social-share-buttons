@@ -165,9 +165,9 @@ final class Fast_Social_Share_Buttons_Plugin {
 			),
 			'colors'         => array(
 				'brand'   => __( 'Brand colours', 'fast-social-share-buttons' ),
-				'hover'   => __( 'Grey, brand colour on hover', 'fast-social-share-buttons' ),
+				'hover'   => __( 'Grey, colour on hover', 'fast-social-share-buttons' ),
 				'outline' => __( 'Outline', 'fast-social-share-buttons' ),
-				'mono'    => __( 'Dark, brand colour on hover', 'fast-social-share-buttons' ),
+				'mono'    => __( 'Dark, colour on hover', 'fast-social-share-buttons' ),
 			),
 			'size'           => array(
 				's' => __( 'Small', 'fast-social-share-buttons' ),
@@ -175,7 +175,7 @@ final class Fast_Social_Share_Buttons_Plugin {
 				'l' => __( 'Large', 'fast-social-share-buttons' ),
 			),
 			'labels'         => array(
-				'auto'  => __( 'Icons and labels when the labels fit, icons only when they don\'t', 'fast-social-share-buttons' ),
+				'auto'  => __( 'Labels when they fit', 'fast-social-share-buttons' ),
 				'never' => __( 'Icons only', 'fast-social-share-buttons' ),
 			),
 			'label_style'    => array(
@@ -183,10 +183,10 @@ final class Fast_Social_Share_Buttons_Plugin {
 				'action' => __( 'Action (Share, Post, Pin)', 'fast-social-share-buttons' ),
 			),
 			'align'          => array(
-				'stretch' => __( 'Fill the width (equal-width buttons)', 'fast-social-share-buttons' ),
-				'left'    => __( 'Left (fixed-width buttons)', 'fast-social-share-buttons' ),
-				'center'  => __( 'Centre (fixed-width buttons)', 'fast-social-share-buttons' ),
-				'right'   => __( 'Right (fixed-width buttons)', 'fast-social-share-buttons' ),
+				'stretch' => __( 'Fill the width', 'fast-social-share-buttons' ),
+				'left'    => __( 'Left', 'fast-social-share-buttons' ),
+				'center'  => __( 'Centre', 'fast-social-share-buttons' ),
+				'right'   => __( 'Right', 'fast-social-share-buttons' ),
 			),
 			'layout'         => array(
 				'row'    => __( 'Horizontal', 'fast-social-share-buttons' ),

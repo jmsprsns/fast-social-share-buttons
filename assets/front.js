@@ -261,11 +261,21 @@
 			group.classList.remove( 'fssb-fit' );
 
 			for ( var i = 0; i < labels.length; i++ ) {
-				if ( labels[ i ].scrollWidth > labels[ i ].clientWidth + 1 ) {
+				if ( truncated( labels[ i ] ) ) {
 					group.classList.add( 'fssb-fit' );
 					return;
 				}
 			}
+		}
+
+		// Compare the text's real width with its box, to the sub-pixel:
+		// scrollWidth rounds, which misses labels cut off by under a pixel.
+		function truncated( label ) {
+			var range = doc.createRange();
+
+			range.selectNodeContents( label );
+
+			return range.getBoundingClientRect().width > label.getBoundingClientRect().width + 0.05;
 		}
 
 		function fitAll() {

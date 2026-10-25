@@ -108,13 +108,26 @@ final class Fast_Social_Share_Buttons_Admin {
 
 		if ( $this->hook_suffix ) {
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+			add_filter( 'admin_body_class', array( $this, 'body_class' ) );
 		}
+	}
+
+	/**
+	 * Mark the settings page's <body>, so its header can run edge to edge.
+	 *
+	 * @param string $classes Space-separated body classes.
+	 * @return string
+	 */
+	public function body_class( $classes ) {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+		return $screen && $screen->id === $this->hook_suffix ? $classes . ' fssb-settings-page' : $classes;
 	}
 
 	/**
 	 * Register the settings, sections and fields shown on the page.
 	 *
-	 * Each section sits in its own tab panel; the tabs are switched in the
+	 * Each section is a box on one of the tabs; the tabs are switched in the
 	 * browser, so one form saves every tab at once.
 	 *
 	 * @return void
@@ -130,43 +143,15 @@ final class Fast_Social_Share_Buttons_Admin {
 			)
 		);
 
-		$sections = array(
-			'networks'  => __( 'Networks', 'fast-social-share-buttons' ),
-			'placement' => __( 'Automatic placement', 'fast-social-share-buttons' ),
-			'manual'    => __( 'Manual placement', 'fast-social-share-buttons' ),
-			'floating'  => __( 'Floating buttons', 'fast-social-share-buttons' ),
-			'style'     => __( 'Style', 'fast-social-share-buttons' ),
-			'advanced'  => __( 'Advanced', 'fast-social-share-buttons' ),
-		);
-		$panels   = array(
-			'networks'  => 'networks',
-			'placement' => 'placement',
-			'manual'    => 'placement',
-			'floating'  => 'placement',
-			'style'     => 'style',
-			'advanced'  => 'advanced',
-		);
-
-		foreach ( $sections as $id => $title ) {
-			add_settings_section(
-				'fssb_' . $id,
-				$title,
-				'manual' === $id ? array( $this, 'render_manual' ) : '__return_false',
-				self::PAGE,
-				array(
-					'before_section' => '<div class="fssb-panel" data-fssb-panel="' . esc_attr( $panels[ $id ] ) . '">',
-					'after_section'  => '</div>',
-				)
-			);
+		foreach ( $this->sections() as $id => $section ) {
+			add_settings_section( 'fssb_' . $id, $section['title'], '__return_false', self::PAGE );
 		}
 
+		// Networks and automatic placement have their own full-width layouts
+		// (see sections()); these are the rows of the other boxes.
 		$fields = array(
-			// Networks.
-			array( 'networks', __( 'Share buttons', 'fast-social-share-buttons' ), 'render_networks', 'networks' ),
-
-			// Placement.
-			array( 'placements', __( 'Show automatically on', 'fast-social-share-buttons' ), 'render_placements', 'placement' ),
-			array( 'float_position', __( 'Sidebar side', 'fast-social-share-buttons' ), 'render_radios', 'floating' ),
+			// Floating.
+			array( 'float_position', __( 'Sidebar side', 'fast-social-share-buttons' ), 'render_cards', 'floating' ),
 			array( 'float_trigger', __( 'Show floating buttons', 'fast-social-share-buttons' ), 'render_radios', 'floating' ),
 			array(
 				'mobile_bar',
@@ -189,12 +174,24 @@ final class Fast_Social_Share_Buttons_Admin {
 			),
 
 			// Style.
-			array( 'shape', __( 'Shape', 'fast-social-share-buttons' ), 'render_radios', 'style' ),
-			array( 'colors', __( 'Colours', 'fast-social-share-buttons' ), 'render_radios', 'style' ),
-			array( 'size', __( 'Size', 'fast-social-share-buttons' ), 'render_radios', 'style' ),
-			array( 'labels', __( 'Labels', 'fast-social-share-buttons' ), 'render_radios', 'style' ),
+			array( 'shape', __( 'Shape', 'fast-social-share-buttons' ), 'render_cards', 'style' ),
+			array( 'colors', __( 'Colours', 'fast-social-share-buttons' ), 'render_cards', 'style' ),
+			array( 'size', __( 'Size', 'fast-social-share-buttons' ), 'render_cards', 'style' ),
+			array(
+				'labels',
+				__( 'Labels', 'fast-social-share-buttons' ),
+				'render_cards',
+				'style',
+				array( 'description' => __( 'Labels show only when every one fits; otherwise every button switches to its icon, so a row never mixes the two.', 'fast-social-share-buttons' ) ),
+			),
 			array( 'label_style', __( 'Label text', 'fast-social-share-buttons' ), 'render_radios', 'style' ),
-			array( 'align', __( 'Alignment', 'fast-social-share-buttons' ), 'render_radios', 'style' ),
+			array(
+				'align',
+				__( 'Alignment', 'fast-social-share-buttons' ),
+				'render_cards',
+				'style',
+				array( 'description' => __( 'Fill shares the row equally between the buttons. Left, centre and right use fixed-width buttons sized to the longest label.', 'fast-social-share-buttons' ) ),
+			),
 			array(
 				'heading',
 				__( 'Heading', 'fast-social-share-buttons' ),
@@ -255,7 +252,8 @@ final class Fast_Social_Share_Buttons_Admin {
 		foreach ( $fields as $field ) {
 			$args = isset( $field[4] ) ? $field[4] : array();
 
-			$args['key'] = $field[0];
+			$args['key']    = $field[0];
+			$args['legend'] = $field[1];
 			if ( in_array( $field[2], array( 'render_text', 'render_number' ), true ) ) {
 				$args['label_for'] = 'fssb-' . $field[0];
 			}
@@ -321,7 +319,6 @@ final class Fast_Social_Share_Buttons_Admin {
 		$ordered = array_merge( Fast_Social_Share_Buttons_Networks::filter( $enabled ), array_diff( array_keys( $all ), $enabled ) );
 		$name    = Fast_Social_Share_Buttons_Plugin::OPTION . '[networks][]';
 		?>
-		<p class="description fssb-networks-help"><?php esc_html_e( 'Tick the networks to show. Drag them, or use the arrows, to change the order.', 'fast-social-share-buttons' ); ?></p>
 		<ul class="fssb-networks" data-fssb-networks>
 			<?php foreach ( $ordered as $key ) : ?>
 				<?php $network = $all[ $key ]; ?>
@@ -403,7 +400,7 @@ final class Fast_Social_Share_Buttons_Admin {
 		$current = (string) $this->plugin->get_setting( $key );
 		?>
 		<fieldset class="fssb-radios">
-			<legend class="screen-reader-text"><?php echo esc_html( $key ); ?></legend>
+			<legend class="screen-reader-text"><?php echo esc_html( isset( $args['legend'] ) ? $args['legend'] : $key ); ?></legend>
 			<?php foreach ( $choices[ $key ] as $value => $label ) : ?>
 				<label>
 					<input type="radio" name="<?php echo esc_attr( Fast_Social_Share_Buttons_Plugin::OPTION . '[' . $key . ']' ); ?>" value="<?php echo esc_attr( $value ); ?>" <?php checked( $current, $value ); ?>>
@@ -412,6 +409,32 @@ final class Fast_Social_Share_Buttons_Admin {
 			<?php endforeach; ?>
 		</fieldset>
 		<?php
+	}
+
+	/**
+	 * Visual option cards for a multiple-choice setting: radio buttons with a
+	 * small drawing of each option.
+	 *
+	 * @param array $args Field arguments: key, legend, description.
+	 * @return void
+	 */
+	public function render_cards( $args ) {
+		$key     = $args['key'];
+		$choices = Fast_Social_Share_Buttons_Plugin::choices();
+		$current = (string) $this->plugin->get_setting( $key );
+		?>
+		<fieldset class="fssb-cards">
+			<legend class="screen-reader-text"><?php echo esc_html( $args['legend'] ); ?></legend>
+			<?php foreach ( $choices[ $key ] as $value => $label ) : ?>
+				<label class="fssb-card">
+					<input type="radio" name="<?php echo esc_attr( Fast_Social_Share_Buttons_Plugin::OPTION . '[' . $key . ']' ); ?>" value="<?php echo esc_attr( $value ); ?>" <?php checked( $current, $value ); ?>>
+					<span class="fssb-card-visual fssb-v-<?php echo esc_attr( $key ); ?> fssb-v-<?php echo esc_attr( $key . '-' . $value ); ?>" aria-hidden="true"><i></i><i></i><i></i></span>
+					<span class="fssb-card-label"><?php echo esc_html( $label ); ?></span>
+				</label>
+			<?php endforeach; ?>
+		</fieldset>
+		<?php
+		$this->render_description( $args );
 	}
 
 	/**
@@ -504,8 +527,6 @@ final class Fast_Social_Share_Buttons_Admin {
 			'heading'  => __( 'any text', 'fast-social-share-buttons' ),
 		);
 		?>
-		<p><?php esc_html_e( 'Put share buttons exactly where you want them, on any post, page or template. Use these alongside the automatic placements above, or untick those and place buttons only by hand. Anything you leave out uses the settings on the other tabs.', 'fast-social-share-buttons' ); ?></p>
-
 		<table class="form-table fssb-manual" role="presentation">
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Shortcode', 'fast-social-share-buttons' ); ?></th>
@@ -610,12 +631,65 @@ final class Fast_Social_Share_Buttons_Admin {
 				'option'   => Fast_Social_Share_Buttons_Plugin::OPTION,
 				'networks' => $labels,
 				'copied'   => __( 'Copied', 'fast-social-share-buttons' ),
+				/* translators: 1: networks switched on, 2: all networks. */
+				'count'    => __( '%1$s of %2$s on', 'fast-social-share-buttons' ),
 			)
 		);
 	}
 
 	/**
-	 * Render the settings page.
+	 * The page's boxes, in order: the tab each one is on, its icon, title and
+	 * intro, and (for boxes that aren't a plain form table) what draws it.
+	 *
+	 * @return array<string,array<string,string>>
+	 */
+	private function sections() {
+		return array(
+			'networks'  => array(
+				'panel'  => 'networks',
+				'icon'   => 'list-checks',
+				'title'  => __( 'Networks', 'fast-social-share-buttons' ),
+				'intro'  => __( 'Tick the networks to show, then drag them (or use the arrows) into order.', 'fast-social-share-buttons' ),
+				'render' => 'render_networks',
+			),
+			'placement' => array(
+				'panel'  => 'placement',
+				'icon'   => 'panels-top-left',
+				'title'  => __( 'Automatic placement', 'fast-social-share-buttons' ),
+				'intro'  => __( 'Where buttons appear on their own, for each type of content.', 'fast-social-share-buttons' ),
+				'render' => 'render_placements',
+			),
+			'manual'    => array(
+				'panel'  => 'placement',
+				'icon'   => 'code',
+				'title'  => __( 'Manual placement', 'fast-social-share-buttons' ),
+				'intro'  => __( 'Put share buttons exactly where you want them, on any post, page or template. Use these alongside the automatic placements above, or untick those and place buttons only by hand. Anything you leave out uses the settings on the other tabs.', 'fast-social-share-buttons' ),
+				'render' => 'render_manual',
+			),
+			'floating'  => array(
+				'panel' => 'placement',
+				'icon'  => 'panel-left',
+				'title' => __( 'Floating buttons', 'fast-social-share-buttons' ),
+				'intro' => __( 'For content types with Floating ticked: a sidebar on wide screens and a share bar along the bottom on phones.', 'fast-social-share-buttons' ),
+			),
+			'style'     => array(
+				'panel' => 'style',
+				'icon'  => 'palette',
+				'title' => __( 'Style', 'fast-social-share-buttons' ),
+				'intro' => __( 'How the buttons look. The preview at the top updates as you go.', 'fast-social-share-buttons' ),
+			),
+			'advanced'  => array(
+				'panel' => 'advanced',
+				'icon'  => 'settings-2',
+				'title' => __( 'Advanced', 'fast-social-share-buttons' ),
+				'intro' => '',
+			),
+		);
+	}
+
+	/**
+	 * Render the settings page: a header with the tabs, then WordPress's
+	 * two-column box layout (settings on the left, Save and status on the right).
 	 *
 	 * @return void
 	 */
@@ -626,61 +700,187 @@ final class Fast_Social_Share_Buttons_Admin {
 
 		$all_networks = array_keys( Fast_Social_Share_Buttons_Networks::all() );
 		$renderer     = $this->plugin->renderer();
+
+		// Every network, in list order; the script hides the unticked ones.
+		$preview = $renderer->render(
+			array(
+				'context'  => 'preview',
+				'post_id'  => 0,
+				'networks' => array_merge( (array) $this->plugin->get_setting( 'networks' ), $all_networks ),
+			)
+		);
 		?>
-		<div class="wrap fast-social-share-buttons-wrap">
+		<div class="fssb-header">
+			<div class="fssb-header-title">
+				<span class="fssb-header-icon"><?php echo Fast_Social_Share_Buttons_Icons::get( self::ICON, 20 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bundled SVG. ?></span>
+				<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+				<span class="fssb-version"><?php echo esc_html( 'v' . FAST_SOCIAL_SHARE_BUTTONS_VERSION ); ?></span>
+			</div>
+			<nav class="fssb-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Settings sections', 'fast-social-share-buttons' ); ?>">
+				<?php foreach ( self::TABS as $id => $icon ) : ?>
+					<a href="#<?php echo esc_attr( $id ); ?>" class="fssb-tab" role="tab" data-fssb-tab="<?php echo esc_attr( $id ); ?>">
+						<?php echo Fast_Social_Share_Buttons_Icons::get( $icon, 16 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bundled SVG. ?>
+						<?php echo esc_html( $this->tab_label( $id ) ); ?>
+					</a>
+				<?php endforeach; ?>
+			</nav>
+		</div>
+
+		<div class="wrap fssb-wrap">
 			<?php echo $renderer->sprite( array_merge( $all_networks, array( 'check' ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bundled icons. ?>
 
-			<h1 class="fast-social-share-buttons-title">
-				<?php echo Fast_Social_Share_Buttons_Icons::get( self::ICON, 26 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bundled SVG. ?>
-				<?php echo esc_html( get_admin_page_title() ); ?>
-			</h1>
+			<hr class="wp-header-end">
 
 			<?php
 			// Pages outside the Settings menu have to show "Settings saved." themselves.
 			settings_errors();
 			?>
 
-			<div class="fssb-preview-card">
-				<h2 class="fssb-preview-title">
-					<?php echo Fast_Social_Share_Buttons_Icons::get( 'eye', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bundled SVG. ?>
-					<?php esc_html_e( 'Preview', 'fast-social-share-buttons' ); ?>
-				</h2>
-				<div class="fssb-preview" data-fssb-preview>
-					<?php
-					// Every network, in list order; the script hides the unticked ones.
-					$preview = $renderer->render(
-						array(
-							'context'  => 'preview',
-							'post_id'  => 0,
-							'networks' => array_merge( (array) $this->plugin->get_setting( 'networks' ), $all_networks ),
-						)
-					);
-
-					echo $preview; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped by the renderer.
-					?>
-				</div>
-			</div>
-
-			<nav class="nav-tab-wrapper fssb-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Settings sections', 'fast-social-share-buttons' ); ?>">
-				<?php foreach ( self::TABS as $id => $icon ) : ?>
-					<a href="#<?php echo esc_attr( $id ); ?>" class="nav-tab" role="tab" data-fssb-tab="<?php echo esc_attr( $id ); ?>">
-						<?php echo Fast_Social_Share_Buttons_Icons::get( $icon, 16 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bundled SVG. ?>
-						<?php echo esc_html( $this->tab_label( $id ) ); ?>
-					</a>
-				<?php endforeach; ?>
-			</nav>
-
 			<form action="options.php" method="post" class="fssb-form">
-				<?php
-				settings_fields( self::PAGE );
-				do_settings_sections( self::PAGE );
-				submit_button();
-				?>
-			</form>
+				<?php settings_fields( self::PAGE ); ?>
 
-			<?php $this->render_updates_card(); ?>
+				<div id="poststuff">
+					<div id="post-body" class="metabox-holder columns-2">
+						<div id="post-body-content">
+							<div class="postbox fssb-preview-box">
+								<div class="postbox-header">
+									<h2 class="hndle">
+										<?php echo Fast_Social_Share_Buttons_Icons::get( 'eye', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bundled SVG. ?>
+										<?php esc_html_e( 'Preview', 'fast-social-share-buttons' ); ?>
+									</h2>
+									<span class="fssb-box-meta"><?php esc_html_e( 'Updates as you change settings', 'fast-social-share-buttons' ); ?></span>
+								</div>
+								<div class="inside">
+									<div class="fssb-preview" data-fssb-preview>
+										<?php echo $preview; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped by the renderer. ?>
+									</div>
+								</div>
+							</div>
+
+							<?php
+							foreach ( $this->sections() as $id => $section ) {
+								$this->render_section( $id, $section );
+							}
+							?>
+						</div>
+
+						<div id="postbox-container-1" class="postbox-container">
+							<div class="fssb-sidebar">
+								<?php $this->render_sidebar(); ?>
+							</div>
+						</div>
+					</div>
+					<br class="clear">
+				</div>
+			</form>
 		</div>
 		<?php
+	}
+
+	/**
+	 * One settings box.
+	 *
+	 * @param string               $id      Section ID.
+	 * @param array<string,string> $section Section details from {@see sections()}.
+	 * @return void
+	 */
+	private function render_section( $id, array $section ) {
+		?>
+		<div class="postbox fssb-box" id="fssb-<?php echo esc_attr( $id ); ?>" data-fssb-panel="<?php echo esc_attr( $section['panel'] ); ?>">
+			<div class="postbox-header">
+				<h2 class="hndle">
+					<?php echo Fast_Social_Share_Buttons_Icons::get( $section['icon'], 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bundled SVG. ?>
+					<?php echo esc_html( $section['title'] ); ?>
+				</h2>
+				<?php if ( 'networks' === $id ) : ?>
+					<span class="fssb-box-meta" data-fssb-count></span>
+				<?php endif; ?>
+			</div>
+			<div class="inside">
+				<?php if ( '' !== $section['intro'] ) : ?>
+					<p class="fssb-intro"><?php echo esc_html( $section['intro'] ); ?></p>
+				<?php endif; ?>
+
+				<?php
+				if ( ! empty( $section['render'] ) ) {
+					call_user_func( array( $this, $section['render'] ) );
+				} else {
+					echo '<table class="form-table" role="presentation">';
+					do_settings_fields( self::PAGE, 'fssb_' . $id );
+					echo '</table>';
+				}
+				?>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Sidebar: Save, what the plugin loads, and where updates come from.
+	 *
+	 * @return void
+	 */
+	private function render_sidebar() {
+		$css = $this->gzipped_size( 'assets/front.min.css' );
+		$js  = $this->gzipped_size( 'assets/front.min.js' );
+		?>
+		<div class="postbox fssb-save-box">
+			<div class="postbox-header">
+				<h2 class="hndle">
+					<?php echo Fast_Social_Share_Buttons_Icons::get( 'save', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bundled SVG. ?>
+					<?php esc_html_e( 'Save', 'fast-social-share-buttons' ); ?>
+				</h2>
+			</div>
+			<div class="inside">
+				<p><?php esc_html_e( 'Settings on every tab are saved together.', 'fast-social-share-buttons' ); ?></p>
+				<?php submit_button( __( 'Save Changes', 'fast-social-share-buttons' ), 'primary large', 'submit', false ); ?>
+			</div>
+		</div>
+
+		<div class="postbox">
+			<div class="postbox-header">
+				<h2 class="hndle">
+					<?php echo Fast_Social_Share_Buttons_Icons::get( 'zap', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bundled SVG. ?>
+					<?php esc_html_e( 'Performance', 'fast-social-share-buttons' ); ?>
+				</h2>
+			</div>
+			<div class="inside">
+				<ul class="fssb-checklist">
+					<li><?php echo Fast_Social_Share_Buttons_Icons::get( 'check', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bundled SVG. ?><span><?php esc_html_e( 'Loads only on pages that show buttons', 'fast-social-share-buttons' ); ?></span></li>
+					<li><?php echo Fast_Social_Share_Buttons_Icons::get( 'check', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bundled SVG. ?><span>
+						<?php
+						/* translators: %s: file size, e.g. "1.8 KB". */
+						echo esc_html( sprintf( __( '%s of CSS, inlined (no extra request)', 'fast-social-share-buttons' ), $css ) );
+						?>
+					</span></li>
+					<li><?php echo Fast_Social_Share_Buttons_Icons::get( 'check', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bundled SVG. ?><span>
+						<?php
+						/* translators: %s: file size, e.g. "2.4 KB". */
+						echo esc_html( sprintf( __( '%s of JavaScript, deferred', 'fast-social-share-buttons' ), $js ) );
+						?>
+					</span></li>
+					<li><?php echo Fast_Social_Share_Buttons_Icons::get( 'check', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bundled SVG. ?><span><?php esc_html_e( 'No third-party requests or layout shift', 'fast-social-share-buttons' ); ?></span></li>
+				</ul>
+				<p class="description"><?php esc_html_e( 'Sizes are gzipped.', 'fast-social-share-buttons' ); ?></p>
+			</div>
+		</div>
+
+		<?php
+		$this->render_updates_box();
+	}
+
+	/**
+	 * Gzipped size of a bundled file, e.g. "1.8 KB".
+	 *
+	 * @param string $file Path relative to the plugin folder.
+	 * @return string
+	 */
+	private function gzipped_size( $file ) {
+		$path = FAST_SOCIAL_SHARE_BUTTONS_DIR . $file;
+		$data = is_readable( $path ) ? (string) file_get_contents( $path ) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$size = function_exists( 'gzencode' ) ? strlen( (string) gzencode( $data, 9 ) ) : strlen( $data );
+
+		return number_format_i18n( $size / 1024, 1 ) . ' KB';
 	}
 
 	/**
@@ -705,59 +905,62 @@ final class Fast_Social_Share_Buttons_Admin {
 	 *
 	 * @return void
 	 */
-	private function render_updates_card() {
+	private function render_updates_box() {
 		$repo_label = preg_replace( '#^https?://[^/]+/#', '', untrailingslashit( FAST_SOCIAL_SHARE_BUTTONS_REPO ) );
 		$check_url  = Fast_Social_Share_Buttons_Updater::check_now_url();
 		?>
-		<div class="fast-social-share-buttons-card">
-			<h2>
-				<?php echo Fast_Social_Share_Buttons_Icons::get( 'refresh-cw', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bundled SVG. ?>
-				<?php esc_html_e( 'Updates', 'fast-social-share-buttons' ); ?>
-			</h2>
+		<div class="postbox fssb-updates-box">
+			<div class="postbox-header">
+				<h2 class="hndle">
+					<?php echo Fast_Social_Share_Buttons_Icons::get( 'refresh-cw', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bundled SVG. ?>
+					<?php esc_html_e( 'Updates', 'fast-social-share-buttons' ); ?>
+				</h2>
+			</div>
+			<div class="inside">
+				<p>
+					<?php
+					/* translators: %s: installed plugin version. */
+					printf( esc_html__( 'Installed version: %s', 'fast-social-share-buttons' ), '<strong>' . esc_html( FAST_SOCIAL_SHARE_BUTTONS_VERSION ) . '</strong>' );
+					?>
+				</p>
 
-			<p>
-				<?php
-				/* translators: %s: installed plugin version. */
-				printf( esc_html__( 'Installed version: %s', 'fast-social-share-buttons' ), '<strong>' . esc_html( FAST_SOCIAL_SHARE_BUTTONS_VERSION ) . '</strong>' );
-				?>
-			</p>
-
-			<?php if ( ! Fast_Social_Share_Buttons_Updater::has_repo() ) : ?>
-				<p>
-					<?php
-					printf(
-						/* translators: 1: header name, 2: main plugin file. */
-						esc_html__( 'No repo set. Add it to the %1$s header in %2$s to turn on automatic updates.', 'fast-social-share-buttons' ),
-						'<code>Update URI</code>',
-						'<code>' . esc_html( plugin_basename( FAST_SOCIAL_SHARE_BUTTONS_FILE ) ) . '</code>'
-					);
-					?>
-				</p>
-			<?php elseif ( Fast_Social_Share_Buttons_Updater::is_dev_copy() ) : ?>
-				<p>
-					<?php
-					printf(
-						/* translators: 1: repo, 2: constant name. */
-						esc_html__( 'Releases come from %1$s, but update checks are off on this development copy so an update can\'t overwrite your work. Define %2$s as false in wp-config.php to test updates here.', 'fast-social-share-buttons' ),
-						'<a href="' . esc_url( FAST_SOCIAL_SHARE_BUTTONS_REPO ) . '" target="_blank" rel="noopener">' . esc_html( $repo_label ) . '</a>',
-						'<code>FAST_SOCIAL_SHARE_BUTTONS_DEV_MODE</code>'
-					);
-					?>
-				</p>
-			<?php else : ?>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: repo. */
-						esc_html__( 'Updates come from the latest release of %s.', 'fast-social-share-buttons' ),
-						'<a href="' . esc_url( FAST_SOCIAL_SHARE_BUTTONS_REPO ) . '" target="_blank" rel="noopener">' . esc_html( $repo_label ) . '</a>'
-					);
-					?>
-				</p>
-				<?php if ( $check_url ) : ?>
-					<p><a class="button" href="<?php echo esc_url( $check_url ); ?>"><?php esc_html_e( 'Check for updates', 'fast-social-share-buttons' ); ?></a></p>
+				<?php if ( ! Fast_Social_Share_Buttons_Updater::has_repo() ) : ?>
+					<p>
+						<?php
+						printf(
+							/* translators: 1: header name, 2: main plugin file. */
+							esc_html__( 'No repo set. Add it to the %1$s header in %2$s to turn on automatic updates.', 'fast-social-share-buttons' ),
+							'<code>Update URI</code>',
+							'<code>' . esc_html( plugin_basename( FAST_SOCIAL_SHARE_BUTTONS_FILE ) ) . '</code>'
+						);
+						?>
+					</p>
+				<?php elseif ( Fast_Social_Share_Buttons_Updater::is_dev_copy() ) : ?>
+					<p>
+						<?php
+						printf(
+							/* translators: 1: repo, 2: constant name. */
+							esc_html__( 'Releases come from %1$s, but update checks are off on this development copy so an update can\'t overwrite your work. Define %2$s as false in wp-config.php to test updates here.', 'fast-social-share-buttons' ),
+							'<a href="' . esc_url( FAST_SOCIAL_SHARE_BUTTONS_REPO ) . '" target="_blank" rel="noopener">' . esc_html( $repo_label ) . '</a>',
+							'<code>FAST_SOCIAL_SHARE_BUTTONS_DEV_MODE</code>'
+						);
+						?>
+					</p>
+				<?php else : ?>
+					<p>
+						<?php
+						printf(
+							/* translators: %s: repo. */
+							esc_html__( 'Updates come from the latest release of %s.', 'fast-social-share-buttons' ),
+							'<a href="' . esc_url( FAST_SOCIAL_SHARE_BUTTONS_REPO ) . '" target="_blank" rel="noopener">' . esc_html( $repo_label ) . '</a>'
+						);
+						?>
+					</p>
+					<?php if ( $check_url ) : ?>
+						<p><a class="button" href="<?php echo esc_url( $check_url ); ?>"><?php esc_html_e( 'Check for updates', 'fast-social-share-buttons' ); ?></a></p>
+					<?php endif; ?>
 				<?php endif; ?>
-			<?php endif; ?>
+			</div>
 		</div>
 		<?php
 	}
