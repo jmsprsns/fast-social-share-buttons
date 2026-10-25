@@ -132,26 +132,26 @@ final class Fast_Social_Share_Buttons_Admin {
 
 		$sections = array(
 			'networks'  => __( 'Networks', 'fast-social-share-buttons' ),
-			'placement' => __( 'Where buttons appear', 'fast-social-share-buttons' ),
+			'placement' => __( 'Automatic placement', 'fast-social-share-buttons' ),
+			'manual'    => __( 'Manual placement', 'fast-social-share-buttons' ),
 			'floating'  => __( 'Floating buttons', 'fast-social-share-buttons' ),
 			'style'     => __( 'Style', 'fast-social-share-buttons' ),
 			'advanced'  => __( 'Advanced', 'fast-social-share-buttons' ),
-			'usage'     => __( 'Adding buttons anywhere', 'fast-social-share-buttons' ),
 		);
 		$panels   = array(
 			'networks'  => 'networks',
 			'placement' => 'placement',
+			'manual'    => 'placement',
 			'floating'  => 'placement',
 			'style'     => 'style',
 			'advanced'  => 'advanced',
-			'usage'     => 'advanced',
 		);
 
 		foreach ( $sections as $id => $title ) {
 			add_settings_section(
 				'fssb_' . $id,
 				$title,
-				'usage' === $id ? array( $this, 'render_usage' ) : '__return_false',
+				'manual' === $id ? array( $this, 'render_manual' ) : '__return_false',
 				self::PAGE,
 				array(
 					'before_section' => '<div class="fssb-panel" data-fssb-panel="' . esc_attr( $panels[ $id ] ) . '">',
@@ -386,7 +386,8 @@ final class Fast_Social_Share_Buttons_Admin {
 				<?php endforeach; ?>
 			</tbody>
 		</table>
-		<p class="description"><?php esc_html_e( 'Buttons only load on the pages ticked here (and pages with the block, shortcode or widget). Every other page stays untouched. To skip one post, use the Social Sharing box on its edit screen.', 'fast-social-share-buttons' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Untick a content type to place its buttons by hand instead, with the shortcode or block (see Manual placement below). To skip a single post, use the Social Sharing box on its edit screen.', 'fast-social-share-buttons' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Either way, the plugin\'s CSS and JavaScript only load on pages that actually show buttons.', 'fast-social-share-buttons' ); ?></p>
 		<?php
 	}
 
@@ -484,34 +485,83 @@ final class Fast_Social_Share_Buttons_Admin {
 	}
 
 	/**
-	 * How to add buttons by hand: block, shortcode, template tag.
+	 * Manual placement: the shortcode (with its options), block, click to
+	 * tweet, widget and template tag, each ready to copy.
 	 *
 	 * @return void
 	 */
-	public function render_usage() {
-		$examples = array(
-			__( 'Block', 'fast-social-share-buttons' )     => __( 'Add the "Social Share Buttons" block to a post, template or widget area.', 'fast-social-share-buttons' ),
-			__( 'Shortcode', 'fast-social-share-buttons' ) => '[fast_social_share networks="facebook,x,linkedin" shape="pill" align="center"]',
-			__( 'Click to tweet', 'fast-social-share-buttons' ) => '[fast_click_to_tweet tweet="What gets posted"]The quote shown on the page[/fast_click_to_tweet]',
-			__( 'In a theme', 'fast-social-share-buttons' ) => '<?php echo fast_social_share_buttons_render( array( \'layout\' => \'column\' ) ); ?>',
+	public function render_manual() {
+		$choices  = Fast_Social_Share_Buttons_Plugin::choices();
+		$networks = array_keys( Fast_Social_Share_Buttons_Networks::all() );
+		$options  = array(
+			'networks' => implode( ', ', $networks ),
+			'shape'    => implode( ', ', array_keys( $choices['shape'] ) ),
+			'colors'   => implode( ', ', array_keys( $choices['colors'] ) ),
+			'size'     => implode( ', ', array_keys( $choices['size'] ) ),
+			'labels'   => implode( ', ', array_keys( $choices['labels'] ) ),
+			'align'    => implode( ', ', array_keys( $choices['align'] ) ),
+			'layout'   => implode( ', ', array_keys( $choices['layout'] ) ),
+			'heading'  => __( 'any text', 'fast-social-share-buttons' ),
 		);
 		?>
-		<p><?php esc_html_e( 'Options left out come from the settings above. Shortcode options: networks, shape, colors, size, labels, align, layout (row or column) and heading.', 'fast-social-share-buttons' ); ?></p>
-		<table class="form-table fssb-usage" role="presentation">
-			<?php foreach ( $examples as $label => $example ) : ?>
-				<tr>
-					<th scope="row"><?php echo esc_html( $label ); ?></th>
-					<td>
-						<?php if ( 0 === strpos( $example, '[' ) || 0 === strpos( $example, '<?php' ) ) : ?>
-							<code><?php echo esc_html( $example ); ?></code>
-						<?php else : ?>
-							<?php echo esc_html( $example ); ?>
-						<?php endif; ?>
-					</td>
-				</tr>
-			<?php endforeach; ?>
+		<p><?php esc_html_e( 'Put share buttons exactly where you want them, on any post, page or template. Use these alongside the automatic placements above, or untick those and place buttons only by hand. Anything you leave out uses the settings on the other tabs.', 'fast-social-share-buttons' ); ?></p>
+
+		<table class="form-table fssb-manual" role="presentation">
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Shortcode', 'fast-social-share-buttons' ); ?></th>
+				<td>
+					<?php $this->render_copy( '[fast_social_share]' ); ?>
+					<p class="description"><?php esc_html_e( 'Paste into any post or page (or a Shortcode block). Add options to change one placement without touching the settings:', 'fast-social-share-buttons' ); ?></p>
+					<?php $this->render_copy( '[fast_social_share networks="facebook,x,linkedin" shape="pill" align="center"]' ); ?>
+					<table class="fssb-options">
+						<?php foreach ( $options as $option => $values ) : ?>
+							<tr>
+								<td><code><?php echo esc_html( $option ); ?></code></td>
+								<td><?php echo esc_html( $values ); ?></td>
+							</tr>
+						<?php endforeach; ?>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Block', 'fast-social-share-buttons' ); ?></th>
+				<td><?php esc_html_e( 'Search for "Social Share Buttons" in the block inserter. Works in posts, pages, templates and widget areas, with the same options in the block\'s sidebar.', 'fast-social-share-buttons' ); ?></td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Click to tweet', 'fast-social-share-buttons' ); ?></th>
+				<td>
+					<?php $this->render_copy( '[fast_click_to_tweet tweet="What gets posted"]The quote shown on the page[/fast_click_to_tweet]' ); ?>
+					<p class="description"><?php esc_html_e( 'A quote box that opens X with the text ready to post. Leave out tweet="..." to post the quote itself.', 'fast-social-share-buttons' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Widget', 'fast-social-share-buttons' ); ?></th>
+				<td><?php esc_html_e( 'Use the block in any widget area. Sites on the classic widgets screen get a "Social Share Buttons" widget, horizontal or stacked.', 'fast-social-share-buttons' ); ?></td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Theme template', 'fast-social-share-buttons' ); ?></th>
+				<td>
+					<?php $this->render_copy( '<?php echo fast_social_share_buttons_render(); ?>' ); ?>
+					<p class="description"><?php esc_html_e( 'Takes the same options as the shortcode, as an array:', 'fast-social-share-buttons' ); ?> <code>array( 'layout' => 'column' )</code></p>
+				</td>
+			</tr>
 		</table>
 		<?php
+	}
+
+	/**
+	 * A line of code with a Copy button.
+	 *
+	 * @param string $code Code to show and copy.
+	 * @return void
+	 */
+	private function render_copy( $code ) {
+		printf(
+			'<div class="fssb-copy-field"><code>%1$s</code><button type="button" class="button button-small" data-fssb-copy="%2$s">%3$s</button></div>',
+			esc_html( $code ),
+			esc_attr( $code ),
+			esc_html__( 'Copy', 'fast-social-share-buttons' )
+		);
 	}
 
 	/**
@@ -559,6 +609,7 @@ final class Fast_Social_Share_Buttons_Admin {
 			array(
 				'option'   => Fast_Social_Share_Buttons_Plugin::OPTION,
 				'networks' => $labels,
+				'copied'   => __( 'Copied', 'fast-social-share-buttons' ),
 			)
 		);
 	}

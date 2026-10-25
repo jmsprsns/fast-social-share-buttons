@@ -167,10 +167,31 @@
 	color: #646970;
 }
 
-.fssb-usage th { width: 140px; }
+/* Manual placement */
+.fssb-manual th { width: 140px; }
 
-.fssb-usage code {
-	display: inline-block;
-	padding: 4px 8px;
+.fssb-copy-field {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	max-width: 720px;
+	margin: 0 0 8px;
+}
+
+.fssb-copy-field code {
+	flex: 1;
+	padding: 6px 10px;
 	word-break: break-all;
+}
+
+.fssb-copy-field .button { flex: none; }
+
+.fssb-options {
+	margin-top: 8px;
+	border-collapse: collapse;
+}
+
+.fssb-options td {
+	padding: 3px 12px 3px 0;
+	vertical-align: top;
 }

@@ -1,7 +1,7 @@
 /**
  * Content Powered > Fast Social Share Buttons page behaviour. Only loaded on that page.
  *
- * Tabs, the sortable network list and the live preview.
+ * Tabs, the sortable network list, the live preview and the Copy buttons.
  * fast_social_share_buttons_admin.option and .networks are passed in from PHP
  * (see Fast_Social_Share_Buttons_Admin::enqueue_assets).
  */
@@ -22,6 +22,7 @@
 		var preview = document.querySelector( '[data-fssb-preview] .fssb' );
 
 		initTabs( form );
+		initCopy();
 
 		if ( ! form || ! list || ! preview ) {
 			return;
@@ -94,6 +95,45 @@
 		} );
 
 		show( window.location.hash.replace( '#', '' ) );
+	}
+
+	// Copy buttons ---------------------------------------------------------------
+
+	function initCopy() {
+		document.addEventListener( 'click', function ( event ) {
+			var button = event.target.closest( '[data-fssb-copy]' );
+
+			if ( ! button ) {
+				return;
+			}
+
+			var text = button.getAttribute( 'data-fssb-copy' );
+			var label = button.textContent;
+			var done = function () {
+				button.textContent = data.copied;
+				setTimeout( function () {
+					button.textContent = label;
+				}, 1500 );
+			};
+
+			if ( navigator.clipboard && window.isSecureContext ) {
+				navigator.clipboard.writeText( text ).then( done );
+				return;
+			}
+
+			// Plain-http sites have no clipboard API.
+			var field = document.createElement( 'textarea' );
+			field.value = text;
+			field.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+			document.body.appendChild( field );
+			field.select();
+			try {
+				if ( document.execCommand( 'copy' ) ) {
+					done();
+				}
+			} catch ( e ) {}
+			document.body.removeChild( field );
+		} );
 	}
 
 	// Network list ---------------------------------------------------------------

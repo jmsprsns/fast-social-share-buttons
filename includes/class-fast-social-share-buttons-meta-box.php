@@ -158,6 +158,15 @@ final class Fast_Social_Share_Buttons_Meta_Box {
 				?>
 			</label>
 		</p>
+		<p class="description">
+			<?php
+			printf(
+				/* translators: %s: the shortcode. */
+				esc_html__( 'To place buttons yourself, add the Social Share Buttons block or %s anywhere in the content.', 'fast-social-share-buttons' ),
+				'<code>[fast_social_share]</code>'
+			);
+			?>
+		</p>
 
 		<p>
 			<label for="fssb-text"><strong><?php esc_html_e( 'Share text', 'fast-social-share-buttons' ); ?></strong></label>

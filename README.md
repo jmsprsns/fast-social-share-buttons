@@ -40,9 +40,9 @@ How it stays that light:
 - **No share counts**, so no API calls, no cron jobs and no extra database queries.
 - **Accessible colours.** Brand colours are darkened where needed so white labels pass WCAG AA (4.5:1) contrast.
 
-## Adding buttons by hand
+## Manual placement
 
-Options you leave out come from the settings.
+Put buttons exactly where you want them, alongside the automatic placements or instead of them (untick a content type in the placement grid to place its buttons only by hand). Options you leave out come from the settings. The same reference, with copy buttons, is on the settings page under **Placement > Manual placement**.
 
 **Block**: add "Social Share Buttons" to a post, template or widget area.
 
