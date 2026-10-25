@@ -1,0 +1,176 @@
+/**
+ * Content Powered > Fast Social Share Buttons page styles. Only loaded on that page.
+ */
+
+.fast-social-share-buttons-title {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.fast-social-share-buttons-card {
+	max-width: 720px;
+	margin-top: 24px;
+	padding: 4px 20px 12px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+}
+
+.fast-social-share-buttons-card h2 {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+/* Preview: stays in view while settings change. */
+.fssb-preview-card {
+	position: sticky;
+	top: 32px;
+	z-index: 10;
+	margin: 16px 0 0;
+	padding: 12px 20px 4px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, .04);
+}
+
+@media (max-width: 782px) {
+	.fssb-preview-card { top: 46px; }
+}
+
+.fssb-preview-title {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	color: #646970;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+}
+
+.fssb-preview .fssb { margin-block: 12px; }
+
+/* Tabs */
+.fssb-tabs { margin-top: 20px; }
+
+.fssb-tabs .nav-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.fssb-panel[hidden] { display: none; }
+
+/* Network list */
+.fssb-networks-help { margin-bottom: 8px; }
+
+.fssb-networks {
+	max-width: 420px;
+	margin: 0 0 8px;
+}
+
+.fssb-network {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 4px;
+	padding: 6px 8px;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+
+.fssb-network.ui-sortable-helper { box-shadow: 0 4px 12px rgba(0, 0, 0, .15); }
+
+.fssb-network.ui-sortable-placeholder {
+	visibility: visible !important;
+	background: #f0f6fc;
+	border: 1px dashed #2271b1;
+}
+
+.fssb-network-handle {
+	display: flex;
+	color: #a7aaad;
+	cursor: grab;
+}
+
+.fssb-network label {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	gap: 10px;
+}
+
+.fssb-network input[type="checkbox"] { margin: 0; }
+
+.fssb-network-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 26px;
+	height: 26px;
+	border-radius: 4px;
+	background: var(--fssb-c);
+	color: #fff;
+}
+
+.fssb-network-icon .fssb-i {
+	width: 15px;
+	height: 15px;
+	fill: currentColor;
+}
+
+.fssb-network:not(:has(:checked)) .fssb-network-icon { opacity: .35; }
+
+.fssb-network-move {
+	display: flex;
+	gap: 2px;
+}
+
+.fssb-network-move .button-link {
+	display: flex;
+	padding: 2px;
+	color: #646970;
+	text-decoration: none;
+}
+
+.fssb-network-move .button-link:hover,
+.fssb-network-move .button-link:focus { color: #2271b1; }
+
+/* Placement grid */
+.fssb-placements {
+	width: auto;
+	min-width: 480px;
+}
+
+.fssb-placements th,
+.fssb-placements td {
+	padding: 10px 16px;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.fssb-placements th:first-child { text-align: left; }
+
+/* Radios: one per line (beats WordPress's inline fieldset labels). */
+.form-table .fssb-radios label {
+	display: block;
+	margin: 0 0 6px !important;
+}
+
+.fssb-prefix {
+	margin-right: 2px;
+	color: #646970;
+}
+
+.fssb-usage th { width: 140px; }
+
+.fssb-usage code {
+	display: inline-block;
+	padding: 4px 8px;
+	word-break: break-all;
+}

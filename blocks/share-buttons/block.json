@@ -1,0 +1,29 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "fast-social-share-buttons/share-buttons",
+	"title": "Social Share Buttons",
+	"category": "widgets",
+	"icon": "share",
+	"description": "Share buttons for this page. Leave the options on Default to use the plugin settings.",
+	"keywords": [ "share", "social", "facebook", "x", "twitter", "pinterest", "linkedin" ],
+	"textdomain": "fast-social-share-buttons",
+	"attributes": {
+		"networks": {
+			"type": "array",
+			"items": { "type": "string" },
+			"default": []
+		},
+		"shape": { "type": "string", "default": "" },
+		"colors": { "type": "string", "default": "" },
+		"size": { "type": "string", "default": "" },
+		"labels": { "type": "string", "default": "" },
+		"align": { "type": "string", "default": "" },
+		"layout": { "type": "string", "default": "" },
+		"heading": { "type": "string", "default": "" }
+	},
+	"supports": {
+		"html": false
+	},
+	"editorScript": "file:./index.js"
+}

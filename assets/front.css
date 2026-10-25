@@ -1,0 +1,370 @@
+/**
+ * Fast Social Share Buttons: front-end styles.
+ *
+ * Inlined in <head> only on pages that show buttons (front.min.css is the
+ * built copy; run bin/build.sh after editing). Button rules use two classes
+ * (.fssb .fssb-b) so theme link and button styles don't leak in.
+ */
+
+/* Group ------------------------------------------------------------------ */
+
+.fssb {
+	--fssb-c: #475569; /* Each network's class sets its own colour. */
+	--fssb-h: 40px;
+	--fssb-r: 6px;
+	--fssb-fs: 14px;
+	--fssb-is: 18px;
+	--fssb-gap: 8px;
+	--fssb-n: 1; /* Number of buttons; set on each group. */
+	display: flex;
+	align-items: center;
+	gap: var(--fssb-gap);
+	margin-block: 1.5em;
+	padding: 0;
+	font-size: var(--fssb-fs);
+	line-height: 1;
+}
+
+/*
+ * In-content buttons: equal widths that fill the row. Each column gets an
+ * equal share of the width (100% minus the gaps, divided by the number of
+ * buttons). Only if that's narrower than an icon button do they wrap, into
+ * rows of equal-width buttons.
+ */
+.fssb-inline {
+	--fssb-share: calc((100% - (var(--fssb-n) - 1) * var(--fssb-gap)) / var(--fssb-n) - .1px);
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(max(var(--fssb-h), var(--fssb-share)), 1fr));
+}
+
+/*
+ * Left, centre or right: the same equal widths, but a fixed width each
+ * (--fssb-lw, sized to the longest label) instead of filling the row.
+ */
+.fssb-compact {
+	--fssb-bw: var(--fssb-lw, 8em);
+	grid-template-columns: repeat(auto-fit, max(var(--fssb-h), min(var(--fssb-bw), var(--fssb-share))));
+}
+
+/* Icons-only by setting: narrower. (When the script drops labels that don't
+   fit, widths stay put so nothing on the page moves.) */
+.fssb-compact.fssb-nolabel { --fssb-bw: calc(var(--fssb-h) * 1.25); }
+
+.fssb-center { justify-content: center; text-align: center; }
+.fssb-right { justify-content: end; text-align: right; }
+
+/* Circles stay round, so they sit side by side rather than filling. */
+.fssb-inline.fssb-ci { grid-template-columns: repeat(auto-fit, var(--fssb-h)); }
+
+/* Stacked, e.g. in a sidebar widget. */
+.fssb-inline.fssb-col { grid-template-columns: 1fr; }
+
+.fssb-h {
+	grid-column: 1 / -1;
+	font-weight: 700;
+}
+
+/* Buttons ---------------------------------------------------------------- */
+
+.fssb .fssb-b {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	box-sizing: border-box;
+	width: auto;
+	min-width: 0;
+	height: var(--fssb-h);
+	margin: 0;
+	padding: 0 6px;
+	border: 0;
+	border-radius: var(--fssb-r);
+	background: var(--fssb-c);
+	box-shadow: none;
+	color: #fff;
+	font: inherit;
+	font-weight: 600;
+	letter-spacing: normal;
+	line-height: 1;
+	text-decoration: none;
+	text-transform: none;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: background-color .15s, box-shadow .15s, color .15s;
+	-webkit-tap-highlight-color: transparent;
+}
+
+/* Lets each label check its own button's width (see the @container rule). */
+.fssb-inline .fssb-b { container-type: inline-size; }
+
+.fssb .fssb-b:hover,
+.fssb .fssb-b:focus-visible {
+	box-shadow: inset 0 0 0 99px rgba(0, 0, 0, .15);
+	color: #fff;
+	text-decoration: none;
+}
+
+.fssb .fssb-b:focus-visible {
+	outline: 2px solid var(--fssb-c);
+	outline-offset: 2px;
+}
+
+.fssb .fssb-b[hidden] { display: none; }
+
+.fssb .fssb-i {
+	flex: none;
+	width: var(--fssb-is);
+	height: var(--fssb-is);
+	fill: currentColor;
+}
+
+.fssb-l {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.fssb-col .fssb-b { justify-content: flex-start; padding: 0 14px; }
+
+/*
+ * Labels are all or nothing: icons only when set that way (.fssb-nolabel),
+ * when the script finds a label that doesn't fit (.fssb-fit), or straight
+ * away on buttons far too narrow for any label, so phones never flash
+ * squashed text before the script runs.
+ */
+.fssb-sr,
+.fssb-nolabel .fssb-l,
+.fssb-fit .fssb-l {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+@container (max-width: 4.5em) {
+	.fssb-inline .fssb-l {
+		position: absolute !important;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+	}
+}
+
+/* Network colours (darkened where needed for 4.5:1 contrast with white). */
+.fssb-facebook { --fssb-c: #0866ff; }
+.fssb-x, .fssb-threads { --fssb-c: #000; }
+.fssb-linkedin { --fssb-c: #0a66c2; }
+.fssb-pinterest { --fssb-c: #e60023; }
+.fssb-reddit { --fssb-c: #d63a00; }
+.fssb-whatsapp { --fssb-c: #178540; }
+.fssb-telegram { --fssb-c: #167caf; }
+.fssb-bluesky { --fssb-c: #0171e5; }
+.fssb-mastodon { --fssb-c: #5e5fff; }
+.fssb-tumblr { --fssb-c: #36465d; }
+.fssb-hackernews { --fssb-c: #c44f00; }
+.fssb-flipboard { --fssb-c: #e12828; }
+.fssb-buffer { --fssb-c: #231f20; }
+.fssb-vk { --fssb-c: #006fed; }
+.fssb-xing { --fssb-c: #006567; }
+.fssb-line { --fssb-c: #04873a; }
+.fssb-sms { --fssb-c: #12863d; }
+.fssb-email { --fssb-c: #6b7280; }
+.fssb-copy { --fssb-c: #475569; }
+.fssb-print { --fssb-c: #64748b; }
+.fssb-share { --fssb-c: #1f2937; }
+
+/* Shapes and sizes ------------------------------------------------------- */
+
+.fssb-sq { --fssb-r: 0; }
+.fssb-pl { --fssb-r: 999px; }
+.fssb-ci { --fssb-r: 50%; }
+.fssb-ci .fssb-b { padding: 0; }
+
+.fssb-s { --fssb-h: 32px; --fssb-fs: 13px; --fssb-is: 15px; --fssb-gap: 6px; }
+.fssb-lg { --fssb-h: 48px; --fssb-fs: 15px; --fssb-is: 20px; --fssb-gap: 10px; }
+
+/* Colour schemes --------------------------------------------------------- */
+
+.fssb-hover .fssb-b {
+	background: #f0f0f1;
+	color: #1e1e1e;
+}
+
+.fssb-outline .fssb-b {
+	background: transparent;
+	box-shadow: inset 0 0 0 2px var(--fssb-c);
+	color: var(--fssb-c);
+}
+
+.fssb-mono .fssb-b { background: #1e1e1e; }
+
+.fssb-hover .fssb-b:hover,
+.fssb-hover .fssb-b:focus-visible,
+.fssb-outline .fssb-b:hover,
+.fssb-outline .fssb-b:focus-visible,
+.fssb-mono .fssb-b:hover,
+.fssb-mono .fssb-b:focus-visible {
+	background: var(--fssb-c);
+	box-shadow: none;
+	color: #fff;
+}
+
+/* Floating sidebar (wide screens) ---------------------------------------- */
+
+.fssb-side {
+	--fssb-h: 44px;
+	--fssb-is: 20px;
+	position: fixed;
+	top: 50%;
+	left: 12px;
+	z-index: 9990;
+	flex-direction: column;
+	flex-wrap: nowrap;
+	gap: 6px;
+	margin: 0;
+	transform: translate(calc(-100% - 24px), -50%);
+	transition: transform .3s ease;
+}
+
+.fssb-side-right.fssb-side {
+	right: 12px;
+	left: auto;
+	transform: translate(calc(100% + 24px), -50%);
+}
+
+.fssb-side.fssb-on { transform: translate(0, -50%); }
+
+.fssb-side .fssb-b { width: var(--fssb-h); }
+
+/* Bottom bar (phones and tablets) ---------------------------------------- */
+
+.fssb-bar {
+	--fssb-h: 48px;
+	--fssb-is: 20px;
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 9990;
+	flex-wrap: nowrap;
+	gap: 0;
+	margin: 0;
+	padding-bottom: env(safe-area-inset-bottom);
+	overflow-x: auto;
+	background: #fff;
+	box-shadow: 0 -1px 6px rgba(0, 0, 0, .12);
+	transform: translateY(100%);
+	transition: transform .3s ease;
+}
+
+.fssb-bar.fssb-on { transform: none; }
+
+.fssb-bar .fssb-b {
+	flex: 1 0 48px;
+	border-radius: 0;
+}
+
+.fssb-bar .fssb-b:focus-visible { outline-offset: -4px; outline-color: #fff; }
+
+html.fssb-bar-on body { padding-bottom: calc(48px + env(safe-area-inset-bottom)); }
+
+/* Click to tweet --------------------------------------------------------- */
+
+.fssb-ctt { margin-block: 1.5em; }
+
+.fssb-ctt .fssb-ctt-a {
+	display: block;
+	padding: 1.25em 1.5em;
+	border-left: 4px solid currentColor;
+	border-radius: 4px;
+	background: rgba(127, 127, 127, .1);
+	color: inherit;
+	text-decoration: none;
+	transition: background-color .15s;
+}
+
+.fssb-ctt .fssb-ctt-a:hover,
+.fssb-ctt .fssb-ctt-a:focus-visible {
+	background: rgba(127, 127, 127, .18);
+	color: inherit;
+	text-decoration: none;
+}
+
+.fssb-ctt-q {
+	display: block;
+	font-size: 1.2em;
+	font-weight: 600;
+	line-height: 1.45;
+}
+
+.fssb-ctt-c {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: .75em;
+	font-size: .8em;
+	font-weight: 700;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+	opacity: .75;
+}
+
+.fssb-ctt .fssb-i {
+	width: 14px;
+	height: 14px;
+	fill: currentColor;
+}
+
+/* Pinterest image button ------------------------------------------------- */
+
+.fssb-pin {
+	position: absolute;
+	z-index: 9991;
+	display: none;
+	align-items: center;
+	gap: 6px;
+	height: 36px;
+	padding: 0 14px;
+	border-radius: 18px;
+	background: #e60023;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, .25);
+	color: #fff;
+	font: 600 14px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	text-decoration: none;
+}
+
+.fssb-pin:hover,
+.fssb-pin:focus-visible {
+	background: #c4001d;
+	color: #fff;
+	text-decoration: none;
+}
+
+.fssb-pin.fssb-on { display: inline-flex; }
+
+.fssb-pin .fssb-i {
+	width: 18px;
+	height: 18px;
+	fill: currentColor;
+}
+
+/* Preferences ------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+	.fssb-side,
+	.fssb-bar,
+	.fssb .fssb-b { transition: none; }
+}
+
+@media print {
+	.fssb,
+	.fssb-ctt,
+	.fssb-pin { display: none !important; }
+}
