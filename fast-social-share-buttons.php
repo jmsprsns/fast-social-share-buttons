@@ -3,7 +3,7 @@
  * Plugin Name:       Fast Social Share Buttons
  * Plugin URI:        https://www.contentpowered.com
  * Description:       Lightweight social share buttons that load only where they're used: inline, floating sidebar and mobile bar, with near-zero PageSpeed impact.
- * Version:           1.0.1
+ * Version:           1.1.0
  * Requires at least: 6.3
  * Requires PHP:      7.2
  * Author:            Content Powered
