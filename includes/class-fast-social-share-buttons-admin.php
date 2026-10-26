@@ -55,6 +55,7 @@ final class Fast_Social_Share_Buttons_Admin {
 		$this->plugin = $plugin;
 
 		Fast_Social_Share_Buttons_Menu::init();
+		Fast_Social_Share_Buttons_Feedback::init();
 
 		add_action( 'admin_menu', array( $this, 'register_menu' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );

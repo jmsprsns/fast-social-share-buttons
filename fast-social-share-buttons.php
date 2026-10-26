@@ -41,6 +41,7 @@ unset( $fast_social_share_buttons_headers );
 require_once FAST_SOCIAL_SHARE_BUTTONS_DIR . 'includes/class-fast-social-share-buttons-icons.php';
 require_once FAST_SOCIAL_SHARE_BUTTONS_DIR . 'includes/class-fast-social-share-buttons-updater.php';
 require_once FAST_SOCIAL_SHARE_BUTTONS_DIR . 'includes/class-fast-social-share-buttons-menu.php';
+require_once FAST_SOCIAL_SHARE_BUTTONS_DIR . 'includes/class-fast-social-share-buttons-feedback.php';
 require_once FAST_SOCIAL_SHARE_BUTTONS_DIR . 'includes/class-fast-social-share-buttons-admin.php';
 require_once FAST_SOCIAL_SHARE_BUTTONS_DIR . 'includes/class-fast-social-share-buttons-networks.php';
 require_once FAST_SOCIAL_SHARE_BUTTONS_DIR . 'includes/class-fast-social-share-buttons-renderer.php';

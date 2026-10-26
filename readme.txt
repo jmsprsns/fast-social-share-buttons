@@ -32,6 +32,8 @@ Share buttons that don't cost you PageSpeed points. Nothing loads on pages witho
 
 Find it under Content Powered > Fast Social Share Buttons in the admin menu.
 
+Found a bug or have an idea? Use Content Powered > Report a Bug or Content Powered > Submit Feedback to send it straight to us.
+
 = Shortcodes =
 
 `[fast_social_share networks="facebook,x,linkedin" shape="pill" align="center"]`
